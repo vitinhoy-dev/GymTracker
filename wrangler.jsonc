@@ -1,0 +1,9 @@
+{
+  // Publicação no Cloudflare Workers (endereço *.workers.dev), servindo só os arquivos estáticos de dist/.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cutting-tracker",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
