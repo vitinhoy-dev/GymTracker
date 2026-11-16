@@ -19,11 +19,11 @@ export default function Workouts() {
   const [tab, setTab] = useState<Tab>('dia')
   return (
     <div className="page">
-      <PageHeader title="Treinos" subtitle="Musculação e Muay Thai. Nada é marcado como feito automaticamente.">
-        <Segmented value={tab} onChange={setTab} options={[
-          { value: 'dia', label: <><Dumbbell size={14} /> Dia</> },
+      <PageHeader title="Treino">
+        <Segmented size="sm" value={tab} onChange={setTab} options={[
+          { value: 'dia', label: <><Dumbbell size={14} /> Hoje</> },
           { value: 'historico', label: <><HistoryIcon size={14} /> Histórico</> },
-          { value: 'cargas', label: <><LineIcon size={14} /> Cargas</> },
+          { value: 'cargas', label: <><LineIcon size={14} /> Evolução</> },
           { value: 'rotina', label: <><CalendarRange size={14} /> Rotina</> },
         ]} />
       </PageHeader>
@@ -68,14 +68,12 @@ function DayView() {
       <DateNav date={date} setDate={setDate} today={today} />
       <AlertList alerts={alerts} />
       <div className="grid two">
-        <Card title="Manhã · musculação" icon={<Dumbbell size={18} />} className="span-2"
-          subtitle={plan.workout ? `${WEEKDAYS[new Date(date + 'T12:00').getDay()]}: ${plan.workout.name}` : 'Dia de descanso de musculação'}>
+        <Card title={plan.workout ? `Musculação · ${plan.workout.name}` : 'Musculação'} icon={<Dumbbell size={18} />} className="span-2">
           {plan.workout && !scheduledLogged && (
             <div className="start-box">
               <div>
                 <strong>{plan.workout.name}</strong>
-                <p className="muted small">{plan.workout.exercises.map((e) => e.name).join(' · ')}</p>
-                {plan.workout.notes && <p className="small info-text">{plan.workout.notes}</p>}
+                <p className="muted small">{plan.workout.exercises.length} exercícios{plan.workout.notes ? ` · ${plan.workout.notes}` : ''}</p>
               </div>
               <div className="btn-row">
                 <button className="btn btn-primary" onClick={() => start(plan.workout!.id)}><Play size={16} /> Iniciar treino</button>
@@ -85,11 +83,11 @@ function DayView() {
             </div>
           )}
           {!plan.workout && !sessions.length && (
-            <Empty icon={<Moon size={26} />} title="Descanso de musculação" text="Recuperação também faz parte do processo." />
+            <Empty icon={<Moon size={26} />} title="Hoje não tem musculação" />
           )}
           {sessions.map((s) => <SessionEditor key={s.id} session={s} />)}
           <details className="extra-workout">
-            <summary className="muted small">Registrar outro treino neste dia</summary>
+            <summary className="muted small">Fazer outro treino hoje</summary>
             <div className="inline-form">
               <select value={extraTpl} onChange={(e) => setExtraTpl(e.target.value)}>
                 <option value="">Escolher treino…</option>
@@ -261,7 +259,7 @@ function MuayCard({ date, scheduled, sessions }: { date: ISODate; scheduled: boo
   }
 
   return (
-    <Card title="Noite · Muay Thai" icon={<Swords size={18} />} className="span-2" subtitle={scheduled ? 'Muay Thai intenso programado' : 'Sem Muay Thai programado'}>
+    <Card title="Muay Thai" icon={<Swords size={18} />} className="span-2" subtitle={scheduled ? 'Programado para hoje à noite' : 'Não programado hoje'}>
       {sessions.map((m) => (
         <div key={m.id} className="muay-row">
           <div>

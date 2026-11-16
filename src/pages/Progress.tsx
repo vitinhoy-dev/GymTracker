@@ -14,7 +14,7 @@ import { useFeedback } from '../components/feedback'
 const DEFAULT_MEASURES = ['Peito', 'Braço', 'Coxa', 'Quadril']
 const COLORS = ['var(--accent)', 'var(--c-water)', 'var(--c-carbs)', 'var(--c-fat)', 'var(--c-protein)', '#c084fc']
 
-export default function Progress() {
+export default function Progress({ embedded = false }: { embedded?: boolean }) {
   const { store, today } = useApp()
   const s = store.settings
   const [editing, setEditing] = useState<BodyLog | null | undefined>(undefined)
@@ -71,10 +71,14 @@ export default function Progress() {
   }
 
   return (
-    <div className="page">
-      <PageHeader title="Evolução física" subtitle="Peso, medidas, fotos e observações. Percentual de gordura só aparece se você informar uma medição.">
-        <button className="btn btn-primary" onClick={() => setEditing(null)}><Plus size={16} /> Novo registro</button>
-      </PageHeader>
+    <div className={embedded ? "page-embedded" : "page"}>
+      {embedded ? (
+        <div className="btn-row"><button className="btn btn-primary" onClick={() => setEditing(null)}><Plus size={16} /> Registrar peso / medidas</button></div>
+      ) : (
+        <PageHeader title="Evolução física">
+          <button className="btn btn-primary" onClick={() => setEditing(null)}><Plus size={16} /> Registrar peso / medidas</button>
+        </PageHeader>
+      )}
 
       <div className="grid stats-grid">
         <div className="stat"><div className="stat-label"><ScaleIcon size={15} />Peso inicial (perfil)</div><div className="stat-value">{fmtNum(s.profile.startWeightKg, 1)} kg</div></div>

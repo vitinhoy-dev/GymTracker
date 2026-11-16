@@ -129,8 +129,8 @@ export function EntryModal({ date, slotId, entry, onClose, plannedItems }: {
   return (
     <Modal title={entry ? 'Editar registro' : 'Registrar alimento'} onClose={onClose}>
       <div className="tabs-inline">
-        <button className={mode === 'base' ? 'active' : ''} onClick={() => setMode('base')}>Da base nutricional</button>
-        <button className={mode === 'manual' ? 'active' : ''} onClick={() => setMode('manual')}><PenLine size={14} /> Sem cadastro (rótulo)</button>
+        <button className={mode === 'base' ? 'active' : ''} onClick={() => setMode('base')}>Escolher alimento</button>
+        <button className={mode === 'manual' ? 'active' : ''} onClick={() => setMode('manual')}><PenLine size={14} /> Digitar do rótulo</button>
       </div>
       {mode === 'base' ? (
         <>
@@ -169,21 +169,26 @@ export function EntryModal({ date, slotId, entry, onClose, plannedItems }: {
             <option value="">Fora do planejamento</option>
           </select>
         </Field>
-        {plannedItems && plannedItems.length > 0 && (
-          <Field label="Substitui (opcional)">
-            <select value={subst} onChange={(e) => setSubst(e.target.value)}>
-              <option value="">—</option>
-              {plannedItems.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
-            </select>
-          </Field>
-        )}
-        {slot !== null && (
-          <label className="check-inline">
-            <input type="checkbox" checked={offPlan} onChange={(e) => setOffPlan(e.target.checked)} /> Fora do planejado
-          </label>
-        )}
-        <Field label="Observação"><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opcional" /></Field>
       </div>
+      <details className="more-fields">
+        <summary className="muted small">Mais opções</summary>
+        <div className="form-grid">
+          {plannedItems && plannedItems.length > 0 && (
+            <Field label="No lugar de (substituição)">
+              <select value={subst} onChange={(e) => setSubst(e.target.value)}>
+                <option value="">—</option>
+                {plannedItems.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+              </select>
+            </Field>
+          )}
+          {slot !== null && (
+            <label className="check-inline">
+              <input type="checkbox" checked={offPlan} onChange={(e) => setOffPlan(e.target.checked)} /> Fora do planejado
+            </label>
+          )}
+          <Field label="Observação"><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="opcional" /></Field>
+        </div>
+      </details>
       {mode === 'base' && food && (
         <div className="preview-box">
           <span className="muted small">{grams != null ? `${fmtNum(grams, 1)} ${food.basis}` : 'Quantidade em gramas indefinida'}</span>

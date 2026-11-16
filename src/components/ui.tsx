@@ -1,6 +1,11 @@
 import { useEffect, type ReactNode, type InputHTMLAttributes } from 'react'
 import { ChevronLeft, ChevronRight, X, CalendarDays } from 'lucide-react'
-import { addDays, fmtLong } from '../lib/dates'
+import { addDays, parseISO } from '../lib/dates'
+
+const fmtNav = (d: ISODate) => {
+  const t = parseISO(d).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')
+  return t.charAt(0).toUpperCase() + t.slice(1)
+}
 import { clamp, fmtNum } from '../lib/util'
 import type { ISODate } from '../lib/types'
 
@@ -155,7 +160,7 @@ export function DateNav({ date, setDate, today, min, max }: { date: ISODate; set
       <button className="icon-btn" disabled={!canPrev} onClick={() => setDate(addDays(date, -1))} aria-label="Dia anterior"><ChevronLeft size={18} /></button>
       <label className="date-nav-label">
         <CalendarDays size={16} />
-        <span>{date === today ? 'Hoje · ' : ''}{date === today ? fmtLong(date) : fmtLong(date).replace(/^./, (c) => c.toUpperCase())}</span>
+        <span>{date === today ? 'Hoje · ' : ''}{fmtNav(date)}</span>
         <input type="date" value={date} min={min} max={max} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label="Escolher data" />
       </label>
       <button className="icon-btn" disabled={!canNext} onClick={() => setDate(addDays(date, 1))} aria-label="Próximo dia"><ChevronRight size={18} /></button>
