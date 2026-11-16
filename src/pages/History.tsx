@@ -7,7 +7,7 @@ import { fmtNum } from '../lib/util'
 import { Card, PageHeader, Segmented } from '../components/ui'
 import { DayClosing } from '../components/DayClosing'
 
-export default function History() {
+export default function History({ embedded = false }: { embedded?: boolean }) {
   const { store, today, date, setDate } = useApp()
   const g = store.settings.goals
   const dates = projectDates(store.settings)
@@ -18,10 +18,11 @@ export default function History() {
   const sel = selected ? summarizeDay(store, selected) : null
 
   return (
-    <div className="page">
-      <PageHeader title="Histórico e calendário" subtitle="Clique em um dia para ver o fechamento. Os registros de cada dia ficam separados e nunca são sobrescritos.">
-        <Segmented value={view} onChange={setView} options={[{ value: 'calendario', label: 'Calendário' }, { value: 'lista', label: 'Fechamentos' }]} />
-      </PageHeader>
+    <div className={embedded ? "page-embedded" : "page"}>
+      {(() => {
+        const seg = <Segmented size="sm" value={view} onChange={setView} options={[{ value: 'calendario', label: 'Calendário' }, { value: 'lista', label: 'Tabela' }]} />
+        return embedded ? <div className="btn-row">{seg}<span className="muted small">Toque em um dia para ver o resumo.</span></div> : <PageHeader title="Histórico" subtitle="Toque em um dia para ver o resumo.">{seg}</PageHeader>
+      })()}
       <div className="history-layout">
         <Card>
           {view === 'calendario' ? (

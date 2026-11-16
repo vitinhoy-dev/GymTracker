@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { LayoutDashboard, Dumbbell, Utensils, Droplets, TrendingUp, CalendarDays, Settings as SettingsIcon, Loader2, AlertTriangle } from 'lucide-react'
+import { Home, Dumbbell, Utensils, TrendingUp, Settings as SettingsIcon, Loader2, AlertTriangle } from 'lucide-react'
 import { AppProvider, useApp } from './lib/store'
 import { FeedbackProvider } from './components/feedback'
 import { useRoute, type Route } from './lib/route'
@@ -7,19 +7,17 @@ import Dashboard from './pages/Dashboard'
 import Workouts from './pages/Workouts'
 import Food from './pages/Food'
 import Hydration from './pages/Hydration'
-import Progress from './pages/Progress'
-import History from './pages/History'
+import ProgressHub from './pages/ProgressHub'
 import SettingsPage from './pages/Settings'
 import { dayPlan } from './lib/day'
 
-const NAV: { route: Route; label: string; short: string; icon: ReactNode }[] = [
-  { route: 'dashboard', label: 'Dashboard', short: 'Início', icon: <LayoutDashboard size={20} /> },
-  { route: 'treinos', label: 'Treinos', short: 'Treinos', icon: <Dumbbell size={20} /> },
-  { route: 'alimentacao', label: 'Alimentação', short: 'Dieta', icon: <Utensils size={20} /> },
-  { route: 'hidratacao', label: 'Hidratação', short: 'Água', icon: <Droplets size={20} /> },
-  { route: 'evolucao', label: 'Evolução física', short: 'Evolução', icon: <TrendingUp size={20} /> },
-  { route: 'historico', label: 'Histórico e calendário', short: 'Histórico', icon: <CalendarDays size={20} /> },
-  { route: 'config', label: 'Configurações e importação', short: 'Ajustes', icon: <SettingsIcon size={20} /> },
+// 5 itens no menu; Hidratação fica dentro de "Hoje" e Histórico dentro de "Progresso"
+const NAV: { route: Route; label: string; short: string; icon: ReactNode; also?: Route[] }[] = [
+  { route: 'dashboard', label: 'Hoje', short: 'Hoje', icon: <Home size={20} />, also: ['hidratacao'] },
+  { route: 'alimentacao', label: 'Dieta', short: 'Dieta', icon: <Utensils size={20} /> },
+  { route: 'treinos', label: 'Treino', short: 'Treino', icon: <Dumbbell size={20} /> },
+  { route: 'evolucao', label: 'Progresso', short: 'Progresso', icon: <TrendingUp size={20} />, also: ['historico'] },
+  { route: 'config', label: 'Ajustes', short: 'Ajustes', icon: <SettingsIcon size={20} /> },
 ]
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -51,8 +49,8 @@ function Shell() {
     treinos: <Workouts />,
     alimentacao: <Food />,
     hidratacao: <Hydration />,
-    evolucao: <Progress />,
-    historico: <History />,
+    evolucao: <ProgressHub initial="corpo" />,
+    historico: <ProgressHub initial="calendario" />,
     config: <SettingsPage />,
   }[route]
   return (
@@ -69,7 +67,7 @@ function Shell() {
         </div>
         <nav>
           {NAV.map((n) => (
-            <a key={n.route} href={`#/${n.route}`} className={route === n.route ? 'active' : ''} aria-current={route === n.route ? 'page' : undefined}>
+            <a key={n.route} href={`#/${n.route}`} className={route === n.route || n.also?.includes(route) ? 'active' : ''} aria-current={route === n.route ? 'page' : undefined}>
               {n.icon}
               <span>{n.label}</span>
             </a>
@@ -82,7 +80,7 @@ function Shell() {
       </main>
       <nav className="bottom-nav">
         {NAV.map((n) => (
-          <a key={n.route} href={`#/${n.route}`} className={route === n.route ? 'active' : ''} aria-label={n.label}>
+          <a key={n.route} href={`#/${n.route}`} className={route === n.route || n.also?.includes(route) ? 'active' : ''} aria-label={n.label}>
             {n.icon}
             <span>{n.short}</span>
           </a>

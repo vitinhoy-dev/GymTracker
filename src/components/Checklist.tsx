@@ -1,7 +1,7 @@
 import { Check, Sparkles, Undo2 } from 'lucide-react'
 import type { DaySummary } from '../lib/day'
 import { toggleChecklist } from '../lib/actions'
-import { Badge, Bar } from './ui'
+import { Bar } from './ui'
 import { useFeedback } from './feedback'
 
 export function ChecklistList({ day, compact }: { day: DaySummary; compact?: boolean }) {
@@ -31,12 +31,12 @@ export function ChecklistList({ day, compact }: { day: DaySummary; compact?: boo
               <span className="check-label">{c.def.label}</span>
             </button>
             <span className="check-tags">
-              {!c.applicable && <Badge tone="muted">não se aplica hoje</Badge>}
-              {c.applicable && c.def.optional && <Badge tone="muted">opcional</Badge>}
-              {c.applicable && c.source === 'auto' && <Badge tone="info"><Sparkles size={11} /> pelos registros</Badge>}
-              {c.applicable && c.source === 'manual' && (
-                <button className="link-btn small" title="Voltar ao valor automático" onClick={() => toggleChecklist(day.date, c.def.key, undefined)}>
-                  <Undo2 size={12} /> manual
+              {!c.applicable && <span className="muted tiny">hoje não</span>}
+              {c.applicable && c.def.optional && <span className="muted tiny">opcional</span>}
+              {c.applicable && c.source === 'auto' && <span className="info-text" title="Marcado automaticamente pelos seus registros"><Sparkles size={13} /></span>}
+              {c.applicable && c.source === 'manual' && c.def.auto && (
+                <button className="icon-btn" title="Voltar ao automático" aria-label="Voltar ao automático" onClick={() => toggleChecklist(day.date, c.def.key, undefined)}>
+                  <Undo2 size={13} />
                 </button>
               )}
             </span>

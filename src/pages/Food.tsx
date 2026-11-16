@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, ClipboardCheck, Ban, RotateCcw, Star, BookmarkPlus, Utensils, Search, Database, Bookmark } from 'lucide-react'
+import { Plus, Pencil, Trash2, ClipboardCheck, Ban, RotateCcw, Star, BookmarkPlus, Utensils, Search, Database, Bookmark, MoreHorizontal } from 'lucide-react'
 import { useApp } from '../lib/store'
 import { summarizeDay } from '../lib/day'
 import { db, updateDayMeta } from '../lib/db'
@@ -30,11 +30,11 @@ export default function Food() {
   const [tab, setTab] = useState<Tab>('diario')
   return (
     <div className="page">
-      <PageHeader title="Alimentação" subtitle="Registre o que você realmente comeu. As metas são estimativas iniciais e podem ser ajustadas em Configurações.">
-        <Segmented value={tab} onChange={setTab} options={[
-          { value: 'diario', label: <><Utensils size={14} /> Diário</> },
-          { value: 'base', label: <><Database size={14} /> Base de alimentos</> },
-          { value: 'salvas', label: <><Bookmark size={14} /> Refeições salvas</> },
+      <PageHeader title="Dieta">
+        <Segmented size="sm" value={tab} onChange={setTab} options={[
+          { value: 'diario', label: <><Utensils size={14} /> Refeições</> },
+          { value: 'base', label: <><Database size={14} /> Alimentos</> },
+          { value: 'salvas', label: <><Bookmark size={14} /> Salvas</> },
         ]} />
       </PageHeader>
       {tab === 'diario' && <Diary />}
@@ -54,6 +54,7 @@ function Diary() {
   const [planSlot, setPlanSlot] = useState<MealSlot | null>(null)
   const [savedFor, setSavedFor] = useState<string | null | undefined>(undefined)
   const [saveAs, setSaveAs] = useState<MealEntry[] | null>(null)
+  const [moreOpen, setMoreOpen] = useState<string | null>(null)
 
   const activeIds = new Set(day.plan.activeSlots.map((m) => m.id))
   const inactive = s.meals.filter((m) => !activeIds.has(m.id)).sort((a, b) => a.time.localeCompare(b.time))
@@ -77,25 +78,38 @@ function Diary() {
     const entries = day.entries.filter((e) => e.slotId === m.id)
     const st = day.slotState[m.id]
     const t = day.bySlot[m.id]
+    const more = moreOpen === m.id
     return (
-      <Card key={m.id} className={`slot slot-${active ? st : 'inactive'}`}
-        title={<>{m.name} {active ? <Badge tone={st === 'registrada' ? 'ok' : st === 'dispensada' ? 'muted' : 'warn'}>{st}</Badge> : <Badge tone="muted">não programada hoje</Badge>}</>}
-        subtitle={<>{m.time}{m.timeEnd ? `–${m.timeEnd}` : ''} · Plano: {planText(m.plan, foods) || '—'}</>}
-        action={entries.length > 0 && <MacroLine kcal={t.kcal} protein={t.protein} carbs={t.carbs} fat={t.fat} />}
-      >
-        {entries.length > 0 && (
+      <Card key={m.id} className={`slot slot-${active ? st : 'inactive'}`}>
+        <div className="slot-head">
+          <div>
+            <span className="muted small">{m.time}</span> <strong>{m.name}</strong>
+            {active ? (st === 'registrada' ? <span className="ok-text small"> · {fmtNum(t.kcal)} kcal</span> : st === 'dispensada' ? <span className="muted small"> · não feita</span> : null) : <span className="muted small"> · não programada hoje</span>}
+          </div>
+          <button className="icon-btn" aria-label="Mais opções" aria-expanded={more} onClick={() => setMoreOpen(more ? null : m.id)}><MoreHorizontal size={18} /></button>
+        </div>
+        {entries.length > 0 ? (
           <ul className="entries">
             {entries.map((e) => <EntryRow key={e.id} e={e} onEdit={() => setModal({ slotId: m.id, entry: e, planned: m.plan })} onDelete={() => del(e)} />)}
           </ul>
+        ) : st !== 'dispensada' && m.plan.length > 0 ? (
+          <p className="muted small">Plano: {planText(m.plan, foods)}</p>
+        ) : null}
+        {st !== 'dispensada' && (
+          <div className="slot-actions">
+            {entries.length === 0 && m.plan.length > 0 && <button className="btn btn-sm btn-primary" onClick={() => setPlanSlot(m)}><ClipboardCheck size={14} /> Comi o planejado</button>}
+            <button className={`btn btn-sm ${entries.length === 0 && m.plan.length > 0 ? '' : 'btn-primary'}`} onClick={() => setModal({ slotId: m.id, planned: m.plan })}><Plus size={14} /> Alimento</button>
+          </div>
         )}
-        <div className="slot-actions">
-          <button className="btn btn-sm btn-primary" onClick={() => setModal({ slotId: m.id, planned: m.plan })}><Plus size={14} /> Alimento</button>
-          {m.plan.length > 0 && <button className="btn btn-sm" onClick={() => setPlanSlot(m)}><ClipboardCheck size={14} /> Registrar como planejado</button>}
-          {customMeals.length > 0 && <button className="btn btn-sm" onClick={() => setSavedFor(m.id)}><Bookmark size={14} /> Refeição salva</button>}
-          {entries.length > 0 && <button className="btn btn-sm btn-ghost" onClick={() => setSaveAs(entries)}><BookmarkPlus size={14} /> Salvar como refeição</button>}
-          {active && st === 'pendente' && <button className="btn btn-sm btn-ghost" onClick={() => skip(m, true)}><Ban size={14} /> Não fiz esta refeição</button>}
-          {active && st === 'dispensada' && <button className="btn btn-sm btn-ghost" onClick={() => skip(m, false)}><RotateCcw size={14} /> Desfazer</button>}
-        </div>
+        {more && (
+          <div className="slot-actions more">
+            {customMeals.length > 0 && <button className="btn btn-sm btn-ghost" onClick={() => setSavedFor(m.id)}><Bookmark size={14} /> Usar refeição salva</button>}
+            {entries.length > 0 && <button className="btn btn-sm btn-ghost" onClick={() => setSaveAs(entries)}><BookmarkPlus size={14} /> Salvar como refeição</button>}
+            {entries.length > 0 && m.plan.length > 0 && <button className="btn btn-sm btn-ghost" onClick={() => setPlanSlot(m)}><ClipboardCheck size={14} /> Adicionar o planejado</button>}
+            {active && st === 'pendente' && <button className="btn btn-sm btn-ghost" onClick={() => skip(m, true)}><Ban size={14} /> Não fiz esta refeição</button>}
+            {active && st === 'dispensada' && <button className="btn btn-sm btn-ghost" onClick={() => skip(m, false)}><RotateCcw size={14} /> Desfazer "não fiz"</button>}
+          </div>
+        )}
       </Card>
     )
   }
@@ -104,21 +118,18 @@ function Diary() {
     <>
       <DateNav date={date} setDate={setDate} today={today} />
       <Card className="totals-card">
-        <div className="totals">
-          <Bar label="Calorias" value={day.totals.kcal} goal={g.kcal} unit="kcal" />
-          <Bar label="Proteínas" value={day.totals.protein} goal={g.proteinG} unit="g" color="var(--c-protein)" />
-          <Bar label="Carboidratos" value={day.totals.carbs} goal={g.carbsG} unit="g" color="var(--c-carbs)" />
-          <Bar label="Gorduras" value={day.totals.fat} goal={g.fatG} unit="g" color="var(--c-fat)" />
-        </div>
-        <p className="muted small">
-          {day.pendingSlots.length ? `Pendentes: ${day.pendingSlots.map((x) => x.name).join(', ')}.` : day.entries.length ? 'Todas as refeições programadas foram registradas ou marcadas.' : ''}
-          {day.totals.missing > 0 && <span className="warn-text"> {day.totals.missing} item(ns) com dados nutricionais incompletos: só os valores informados entram nos totais.</span>}
+        <Bar label={<b>Calorias</b>} value={day.totals.kcal} goal={g.kcal} unit="kcal" />
+        <p className="macro-summary small">
+          <span className="m-p">Proteína {fmtNum(day.totals.protein)}/{fmtNum(g.proteinG)} g</span>
+          <span className="m-c">Carbo {fmtNum(day.totals.carbs)}/{fmtNum(g.carbsG)} g</span>
+          <span className="m-f">Gordura {fmtNum(day.totals.fat)}/{fmtNum(g.fatG)} g</span>
         </p>
+        {day.totals.missing > 0 && <p className="warn-text tiny">{day.totals.missing} item(ns) sem todos os valores nutricionais (só o que foi informado é somado).</p>}
       </Card>
 
       <div className="slots">
         {day.plan.activeSlots.map((m) => renderSlot(m, true))}
-        <Card title={<>Fora do planejamento {extras.length > 0 && <Badge tone="info">{extras.length}</Badge>}</>} subtitle="Lanches extras, beliscos e qualquer item não planejado"
+        <Card title={<>Extras {extras.length > 0 && <Badge tone="info">{extras.length}</Badge>}</>} subtitle="O que você comeu fora do plano"
           action={extras.length > 0 && (() => { const t = sumEntries(extras); return <MacroLine kcal={t.kcal} protein={t.protein} carbs={t.carbs} fat={t.fat} /> })()}>
           {extras.length > 0 && (
             <ul className="entries">
@@ -126,13 +137,13 @@ function Diary() {
             </ul>
           )}
           <div className="slot-actions">
-            <button className="btn btn-sm" onClick={() => setModal({ slotId: null })}><Plus size={14} /> Registrar item extra</button>
+            <button className="btn btn-sm" onClick={() => setModal({ slotId: null })}><Plus size={14} /> Item extra</button>
             {customMeals.length > 0 && <button className="btn btn-sm" onClick={() => setSavedFor(null)}><Bookmark size={14} /> Refeição salva</button>}
           </div>
         </Card>
         {inactive.length > 0 && (
           <details className="inactive-slots">
-            <summary className="muted">Refeições não programadas para este dia ({inactive.length})</summary>
+            <summary className="muted small">Outras refeições ({inactive.length})</summary>
             {inactive.map((m) => renderSlot(m, false))}
           </details>
         )}
@@ -153,13 +164,11 @@ function EntryRow({ e, onEdit, onDelete }: { e: MealEntry; onEdit: () => void; o
         <strong>{e.name}</strong>
         <span className="muted small">
           {' '}{fmtNum(e.quantity, 1)} {e.unit === 'un' ? 'un' : e.unit}{e.unit === 'un' && e.grams != null ? ` (${fmtNum(e.grams)} g)` : ''}
-          {e.substituteFor && ` · substitui ${e.substituteFor}`}
-          {e.offPlan && e.slotId && ' · fora do planejado'}
-          {e.note && ` · ${e.note}`}
+          {e.substituteFor && ` · no lugar de ${e.substituteFor}`}
         </span>
       </div>
       <div className="row-actions">
-        <MacroLine kcal={e.kcal} protein={e.protein} carbs={e.carbs} fat={e.fat} />
+        {e.kcal != null ? <span className="small" title={`P ${fmtNum(e.protein, 1)} · C ${fmtNum(e.carbs, 1)} · G ${fmtNum(e.fat, 1)}`}><b>{fmtNum(e.kcal)}</b> kcal</span> : <span className="warn-text small">sem dados</span>}
         <button className="icon-btn" onClick={onEdit} aria-label="Editar"><Pencil size={15} /></button>
         <button className="icon-btn danger" onClick={onDelete} aria-label="Excluir"><Trash2 size={15} /></button>
       </div>
@@ -168,7 +177,7 @@ function EntryRow({ e, onEdit, onDelete }: { e: MealEntry; onEdit: () => void; o
 }
 
 /** revisar e registrar os itens planejados de uma refeição */
-function PlanModal({ date, slot, onClose }: { date: ISODate; slot: MealSlot; onClose: () => void }) {
+export function PlanModal({ date, slot, onClose }: { date: ISODate; slot: MealSlot; onClose: () => void }) {
   const { foods } = useApp()
   const { toast } = useFeedback()
   const [rows, setRows] = useState(() =>
@@ -212,7 +221,7 @@ function PlanModal({ date, slot, onClose }: { date: ISODate; slot: MealSlot; onC
 
   return (
     <Modal title={`Registrar ${slot.name}`} onClose={onClose}>
-      <p className="muted small">Confira as quantidades que você realmente comeu. Itens desmarcados não são registrados.</p>
+      <p className="muted small">Ajuste se comeu diferente. Itens desmarcados não entram.</p>
       <div className="plan-rows">
         {rows.map((r, i) => {
           const f = foods.find((x) => x.id === r.foodId)

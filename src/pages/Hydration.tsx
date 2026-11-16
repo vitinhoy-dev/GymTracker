@@ -53,7 +53,7 @@ export default function Hydration() {
 
   return (
     <div className="page">
-      <PageHeader title="Hidratação" subtitle="Registre apenas o que você realmente bebeu." />
+      <PageHeader title="Água" />
       <DateNav date={date} setDate={setDate} today={today} />
       <div className="grid two">
         <Card title="Consumo do dia" icon={<Droplets size={18} />}>
@@ -107,7 +107,7 @@ export default function Hydration() {
         </Card>
       </div>
       {store.settings.waterPlan && store.settings.waterPlan.length > 0 && (
-        <Card title="Plano por horário" subtitle="Referência importada da planilha. O progresso usa apenas o que você registrou.">
+        <Card title="Meta por horário" subtitle="Referência da planilha">
           <ul className="plain-list small">
             {(() => {
               let acc = 0
@@ -127,7 +127,7 @@ export default function Hydration() {
           </ul>
         </Card>
       )}
-      <Card title="Resumo por dia" subtitle="Consumo real registrado em cada dia do projeto">
+      <Card title="Dias anteriores">
         <BarChart data={history} goal={g.waterMl} unit="ml" color="var(--c-water)" />
         <div className="table-wrap">
           <table className="table compact">
